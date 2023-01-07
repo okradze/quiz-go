@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -13,12 +14,21 @@ func main() {
 	timeLimit := flag.Int("limit", 30, "total time limit for quiz in seconds")
 	flag.Parse()
 
-	askUserIfReady(timeLimit)
-
 	lines := readCSVFile(csvFilename)
 	problems := parseCSVLines(lines)
 
+	askUserIfReady(timeLimit)
+	
 	var correctAnswers int
+
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
+
+	go func() {
+		<- timer.C
+		fmt.Println("\nTime Expired")
+		fmt.Printf("You scored %d out of %d\n", correctAnswers, len(lines))
+		os.Exit(0)
+	}()
 
 	for i, problem := range problems {
 		fmt.Printf("Problem #%d: %s = ", i + 1, problem.question)
